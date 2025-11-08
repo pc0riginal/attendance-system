@@ -209,6 +209,28 @@ python deploy.py
    gunicorn temple_attendance.wsgi:application
    ```
 
+### 🐳 Docker Deployment
+
+#### Quick Start with Docker
+```bash
+# Build and run with docker-compose
+docker-compose up --build
+
+# Access at http://localhost:8000
+```
+
+#### Manual Docker Build
+```bash
+# Build image
+docker build -t temple-attendance .
+
+# Run container
+docker run -p 8000:8000 \
+  -e SECRET_KEY=your-secret-key \
+  -e DEBUG=False \
+  temple-attendance
+```
+
 ### ☁️ Cloud Deployment
 
 #### Heroku
