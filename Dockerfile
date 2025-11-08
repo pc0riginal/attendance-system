@@ -7,10 +7,9 @@ RUN pip install --no-cache-dir -r requirements-prod.txt
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput --settings=temple_attendance.production_settings
+RUN python manage.py collectstatic --noinput
 
-ENV DJANGO_SETTINGS_MODULE=temple_attendance.production_settings
-ENV ALLOWED_HOSTS=*
+ENV DEBUG=False
 
 EXPOSE 8000
 
