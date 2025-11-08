@@ -10,7 +10,12 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-temple-attendance-key
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Handle ALLOWED_HOSTS - support both wildcard (*) and comma-separated hosts
-allowed_hosts_str = config('ALLOWED_HOSTS', default='localhost,127.0.0.1')
+try:
+    allowed_hosts_str = config('ALLOWED_HOSTS', default='*')
+except:
+    # Fallback to os.environ if decouple fails
+    allowed_hosts_str = os.environ.get('ALLOWED_HOSTS', '*')
+
 if allowed_hosts_str == '*':
     ALLOWED_HOSTS = ['*']
 else:
