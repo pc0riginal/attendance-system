@@ -9,7 +9,12 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-temple-attendance-key
 
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+# Handle ALLOWED_HOSTS - support both wildcard (*) and comma-separated hosts
+allowed_hosts_str = config('ALLOWED_HOSTS', default='localhost,127.0.0.1')
+if allowed_hosts_str == '*':
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',')]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
