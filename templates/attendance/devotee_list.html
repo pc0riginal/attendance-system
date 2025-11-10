@@ -85,10 +85,10 @@
                             
                             <!-- Action Buttons -->
                             <div class="d-flex gap-2">
-                                <a href="{% url 'devotee_detail' devotee.pk %}" class="btn btn-temple btn-sm flex-fill d-flex align-items-center justify-content-center">
+                                <a href="{% url 'devotee_detail' devotee.id %}" class="btn btn-temple btn-sm flex-fill d-flex align-items-center justify-content-center">
                                     <i class="bi bi-eye me-1"></i>View
                                 </a>
-                                <a href="{% url 'devotee_edit' devotee.pk %}" class="btn btn-outline-primary btn-sm flex-fill d-flex align-items-center justify-content-center">
+                                <a href="{% url 'devotee_edit' devotee.id %}" class="btn btn-outline-primary btn-sm flex-fill d-flex align-items-center justify-content-center">
                                     <i class="bi bi-edit me-1"></i>Edit
                                 </a>
                             </div>
@@ -135,10 +135,10 @@
                                     <td>{{ devotee.age_group }}</td>
                                     <td>
                                         <div class="d-flex gap-2">
-                                            <a href="{% url 'devotee_detail' devotee.pk %}" class="btn btn-sm btn-temple d-flex align-items-center justify-content-center" style="width: 70px;">
+                                            <a href="{% url 'devotee_detail' devotee.id %}" class="btn btn-sm btn-temple d-flex align-items-center justify-content-center" style="width: 70px;">
                                                 <i class="bi bi-eye"></i> View
                                             </a>
-                                            <a href="{% url 'devotee_edit' devotee.pk %}" class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center" style="width: 70px;">
+                                            <a href="{% url 'devotee_edit' devotee.id %}" class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center" style="width: 70px;">
                                                 <i class="bi bi-edit"></i> Edit
                                             </a>
                                         </div>

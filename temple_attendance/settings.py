@@ -58,6 +58,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'temple_attendance.wsgi.application'
 
+# MongoDB Configuration
+MONGODB_URI = 'mongodb+srv://msm98:paras123@cluster0.4gnmc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
+MONGODB_NAME = 'temple_attendance'
+
+# MongoDB Client will be initialized in mongodb_utils.py
+
+# SQLite for Django admin, auth, sessions
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

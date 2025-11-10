@@ -74,17 +74,17 @@
                                 
                                 <!-- Status Toggle Buttons -->
                                 <div class="btn-group w-100 mb-3" role="group">
-                                    <input type="radio" class="btn-check" name="status_{{ devotee.id }}" id="present_{{ devotee.id }}" value="present" onchange="saveAttendance({{ devotee.id }}, 'present')" {% with existing_attendance|get_item:devotee.id as attendance %}{% if attendance.status == 'present' %}checked{% endif %}{% endwith %}>
+                                    <input type="radio" class="btn-check" name="status_{{ devotee.id }}" id="present_{{ devotee.id }}" value="present" onchange="saveAttendance('{{ devotee.id }}', 'present')" {% with existing_attendance|get_item:devotee.id as attendance %}{% if attendance.status == 'present' %}checked{% endif %}{% endwith %}>
                                     <label class="btn btn-outline-success" for="present_{{ devotee.id }}">
                                         <i class="bi bi-check-circle"></i> Present
                                     </label>
                                     
-                                    <input type="radio" class="btn-check" name="status_{{ devotee.id }}" id="late_{{ devotee.id }}" value="late" onchange="saveAttendance({{ devotee.id }}, 'late')" {% with existing_attendance|get_item:devotee.id as attendance %}{% if attendance.status == 'late' %}checked{% endif %}{% endwith %}>
+                                    <input type="radio" class="btn-check" name="status_{{ devotee.id }}" id="late_{{ devotee.id }}" value="late" onchange="saveAttendance('{{ devotee.id }}', 'late')" {% with existing_attendance|get_item:devotee.id as attendance %}{% if attendance.status == 'late' %}checked{% endif %}{% endwith %}>
                                     <label class="btn btn-outline-warning" for="late_{{ devotee.id }}">
                                         <i class="bi bi-clock"></i> Late
                                     </label>
                                     
-                                    <input type="radio" class="btn-check" name="status_{{ devotee.id }}" id="absent_{{ devotee.id }}" value="absent" onchange="saveAttendance({{ devotee.id }}, 'absent')" {% with existing_attendance|get_item:devotee.id as attendance %}{% if not attendance or attendance.status == 'absent' %}checked{% endif %}{% endwith %}>
+                                    <input type="radio" class="btn-check" name="status_{{ devotee.id }}" id="absent_{{ devotee.id }}" value="absent" onchange="saveAttendance('{{ devotee.id }}', 'absent')" {% with existing_attendance|get_item:devotee.id as attendance %}{% if not attendance or attendance.status == 'absent' %}checked{% endif %}{% endwith %}>
                                     <label class="btn btn-outline-danger" for="absent_{{ devotee.id }}">
                                         <i class="bi bi-x-circle"></i> Absent
                                     </label>
@@ -133,7 +133,7 @@
                                         <td>{{ devotee.name }}</td>
                                         <td>{{ devotee.contact_number }}</td>
                                         <td>
-                                            <select name="status_{{ devotee.id }}" class="form-select form-select-sm" onchange="saveAttendance({{ devotee.id }}, this.value)">
+                                            <select name="status_{{ devotee.id }}" class="form-select form-select-sm" onchange="saveAttendance('{{ devotee.id }}', this.value)">
                                                 {% with existing_attendance|get_item:devotee.id as attendance %}
                                                 <option value="absent" {% if not attendance or attendance.status == 'absent' %}selected{% endif %}>Absent</option>
                                                 <option value="present" {% if attendance.status == 'present' %}selected{% endif %}>Present</option>
@@ -211,9 +211,11 @@ function saveAttendance(devoteeId, status) {
     const sabhaId = window.location.pathname.split('/')[2];
     const notesElement = document.querySelector(`[name="notes_${devoteeId}"]`);
     
+    console.log('Saving attendance:', devoteeId, status, sabhaId);
+    
     const data = {
         sabha_id: sabhaId,
-        devotee_id: devoteeId,
+        devotee_id: String(devoteeId),
         status: status,
         notes: notesElement ? notesElement.value : ''
     };
@@ -244,6 +246,7 @@ function saveAttendance(devoteeId, status) {
 // Save notes function
 function saveNotes(devoteeId, notes) {
     const sabhaId = window.location.pathname.split('/')[2];
+    devoteeId = String(devoteeId);
     const statusElement = document.querySelector(`[name="status_${devoteeId}"]`);
     
     // Get current status
@@ -259,7 +262,7 @@ function saveNotes(devoteeId, notes) {
     
     const data = {
         sabha_id: sabhaId,
-        devotee_id: devoteeId,
+        devotee_id: String(devoteeId),
         status: currentStatus,
         notes: notes
     };
