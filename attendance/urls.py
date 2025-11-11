@@ -29,4 +29,8 @@ urlpatterns = [
     
     # API
     path('api/save-attendance/', views.save_individual_attendance, name='save_individual_attendance'),
+    
+    # Delete URLs
+    path('devotees/delete/<str:pk>/', views.devotee_delete, name='devotee_delete'),
+    path('sabhas/delete/<str:pk>/', views.sabha_delete, name='sabha_delete'),
 ]

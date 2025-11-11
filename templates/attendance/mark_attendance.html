@@ -154,7 +154,7 @@
                     </div>
                 </div>
                 <!-- Pagination -->
-                {% if page_obj.has_other_pages %}
+                {% if page_obj.paginator.num_pages > 1 %}
                 <nav class="mt-4">
                     <ul class="pagination justify-content-center">
                         {% if page_obj.has_previous %}
@@ -290,24 +290,7 @@ function saveNotes(devoteeId, notes) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const toolbar = document.createElement('div');
-    toolbar.className = 'mb-3';
-    toolbar.innerHTML = `
-        <div class="d-flex flex-wrap gap-2 mb-4">
-            <button type="button" class="btn btn-success" onclick="markAll('present')">
-                <i class="bi bi-check-circle"></i> Mark All Present
-            </button>
-            <button type="button" class="btn btn-warning" onclick="markAll('late')">
-                <i class="bi bi-clock"></i> Mark All Late
-            </button>
-            <button type="button" class="btn btn-danger" onclick="markAll('absent')">
-                <i class="bi bi-x-circle"></i> Mark All Absent
-            </button>
-        </div>
-    `;
-    document.querySelector('form').prepend(toolbar);
-});
+
 
 
 
@@ -328,31 +311,7 @@ function showSaveStatus(message, type) {
     }
 }
 
-function markAll(status) {
-    showSaveStatus('Saving all...', 'warning');
-    
-    // Handle radio buttons (mobile)
-    const radios = document.querySelectorAll(`input[value="${status}"]`);
-    radios.forEach(radio => {
-        if (radio.name.startsWith('status_')) {
-            radio.checked = true;
-            const devoteeId = radio.name.split('_')[1];
-            saveAttendance(devoteeId, status);
-        }
-    });
-    
-    // Handle select dropdowns (desktop)
-    const selects = document.querySelectorAll('select[name^="status_"]');
-    selects.forEach(select => {
-        select.value = status;
-        const devoteeId = select.name.split('_')[1];
-        saveAttendance(devoteeId, status);
-    });
-    
-    setTimeout(() => {
-        showSaveStatus('All saved', 'success');
-    }, 1000);
-}
+
 
 // Server-side search functionality
 let searchTimeout;
@@ -370,7 +329,7 @@ document.getElementById('searchInput').addEventListener('input', function() {
         } else {
             url.searchParams.delete('search');
         }
-        url.searchParams.delete('page'); // Reset to first page
+        url.searchParams.delete('page');
         
         fetch(url, {
             headers: {
@@ -380,32 +339,135 @@ document.getElementById('searchInput').addEventListener('input', function() {
         .then(response => response.json())
         .then(data => {
             updateAttendanceList(data);
+            updateAttendancePagination(data);
             loading.style.display = 'none';
         })
         .catch(() => {
             loading.style.display = 'none';
         });
-    }, 300); // Debounce search
+    }, 300);
 });
 
 function updateAttendanceList(data) {
-    // Update mobile cards
     const mobileContainer = document.querySelector('.d-block.d-lg-none');
     const desktopContainer = document.querySelector('.d-none.d-md-block tbody');
     
-    // Clear existing content
     mobileContainer.innerHTML = '';
     desktopContainer.innerHTML = '';
     
-    // Add new devotees
     data.devotees.forEach(devotee => {
-        // Mobile card
-        const mobileCard = createMobileAttendanceCard(devotee);
+        const mobileCard = document.createElement('div');
+        mobileCard.className = 'card mb-3';
+        mobileCard.innerHTML = `
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-3">
+                        ${devotee.photo_url ? 
+                            `<img src="${devotee.photo_url}" alt="${devotee.name}" class="rounded-circle" width="60" height="60" style="object-fit: cover;">` :
+                            `<div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;"><i class="bi bi-person fs-5"></i></div>`
+                        }
+                    </div>
+                    <div>
+                        <h6 class="fw-semibold mb-1">${devotee.name}</h6>
+                        <small class="text-muted d-block">${devotee.contact_number}</small>
+                        <small class="text-muted">${devotee.sabha_type_display}</small>
+                    </div>
+                </div>
+                <div class="btn-group w-100 mb-3" role="group">
+                    <input type="radio" class="btn-check" name="status_${devotee.id}" id="present_${devotee.id}" value="present" onchange="saveAttendance('${devotee.id}', 'present')">
+                    <label class="btn btn-outline-success" for="present_${devotee.id}"><i class="bi bi-check-circle"></i> Present</label>
+                    <input type="radio" class="btn-check" name="status_${devotee.id}" id="late_${devotee.id}" value="late" onchange="saveAttendance('${devotee.id}', 'late')">
+                    <label class="btn btn-outline-warning" for="late_${devotee.id}"><i class="bi bi-clock"></i> Late</label>
+                    <input type="radio" class="btn-check" name="status_${devotee.id}" id="absent_${devotee.id}" value="absent" onchange="saveAttendance('${devotee.id}', 'absent')" checked>
+                    <label class="btn btn-outline-danger" for="absent_${devotee.id}"><i class="bi bi-x-circle"></i> Absent</label>
+                </div>
+                <input type="text" name="notes_${devotee.id}" class="form-control" placeholder="Add notes (optional)" onchange="saveNotes('${devotee.id}', this.value)">
+            </div>
+        `;
         mobileContainer.appendChild(mobileCard);
         
-        // Desktop row
-        const desktopRow = createDesktopAttendanceRow(devotee);
+        const desktopRow = document.createElement('tr');
+        desktopRow.innerHTML = `
+            <td>
+                ${devotee.photo_url ? 
+                    `<img src="${devotee.photo_url}" alt="${devotee.name}" class="rounded-circle" width="40" height="40" style="object-fit: cover;">` :
+                    `<div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-person text-muted"></i></div>`
+                }
+            </td>
+            <td>${devotee.name}</td>
+            <td>${devotee.contact_number}</td>
+            <td>
+                <select name="status_${devotee.id}" class="form-select form-select-sm" onchange="saveAttendance('${devotee.id}', this.value)">
+                    <option value="absent" selected>Absent</option>
+                    <option value="present">Present</option>
+                    <option value="late">Late</option>
+                </select>
+            </td>
+            <td>
+                <input type="text" name="notes_${devotee.id}" class="form-control form-control-sm" placeholder="Optional notes" onchange="saveNotes('${devotee.id}', this.value)">
+            </td>
+        `;
         desktopContainer.appendChild(desktopRow);
+    });
+}
+
+function updateAttendancePagination(data) {
+    const paginationNav = document.querySelector('nav');
+    if (!paginationNav || data.total_pages <= 1) {
+        if (paginationNav) paginationNav.style.display = 'none';
+        return;
+    }
+    
+    paginationNav.style.display = 'block';
+    const pagination = paginationNav.querySelector('.pagination');
+    
+    let paginationHTML = '';
+    
+    if (data.has_previous) {
+        paginationHTML += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="loadAttendancePage(1)">&laquo; First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="loadAttendancePage(${data.current_page - 1})">Previous</a>
+            </li>
+        `;
+    }
+    
+    paginationHTML += `
+        <li class="page-item active">
+            <span class="page-link">Page ${data.current_page} of ${data.total_pages}</span>
+        </li>
+    `;
+    
+    if (data.has_next) {
+        paginationHTML += `
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="loadAttendancePage(${data.current_page + 1})">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="#" onclick="loadAttendancePage(${data.total_pages})">Last &raquo;</a>
+            </li>
+        `;
+    }
+    
+    pagination.innerHTML = paginationHTML;
+}
+
+function loadAttendancePage(page) {
+    const searchQuery = document.getElementById('searchInput').value;
+    const sabhaId = window.location.pathname.split('/')[2];
+    const url = `/sabhas/${sabhaId}/attendance/?page=${page}${searchQuery ? '&search=' + searchQuery : ''}`;
+    
+    fetch(url, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        updateAttendanceList(data);
+        updateAttendancePagination(data);
     });
 }
 

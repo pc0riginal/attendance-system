@@ -99,7 +99,7 @@ def devotee_list(request):
             'age_group': d.get('age_group', 'N/A'),
             'join_date': d['join_date'],
             'photo_url': d.get('photo_url', '')
-        } for d in devotees]
+        } for d in devotees_raw]
         
         return JsonResponse({
             'devotees': devotees_data,
@@ -226,6 +226,9 @@ def mark_attendance(request, sabha_id):
     sabha['get_sabha_type_display'] = sabha.get('sabha_type', '').title() + ' Sabha'
     
     search_query = request.GET.get('search', '')
+    page = int(request.GET.get('page', 1))
+    per_page = 30
+    
     query = {'sabha_type': sabha['sabha_type']}
     
     if search_query:
@@ -239,12 +242,20 @@ def mark_attendance(request, sabha_id):
             ]
         }
     
-    devotees_raw = devotees_db.find(query, sort=[('name', 1)])
+    total_count = devotees_db.count(query)
+    skip = (page - 1) * per_page
+    
+    devotees_raw = devotees_db.find(query, sort=[('name', 1)], skip=skip, limit=per_page)
     devotees = []
     for devotee in devotees_raw:
         devotee['id'] = str(devotee['_id'])
         devotee['get_sabha_type_display'] = devotee.get('sabha_type', '').title()
         devotees.append(devotee)
+    
+    # Pagination info
+    total_pages = (total_count + per_page - 1) // per_page
+    has_previous = page > 1
+    has_next = page < total_pages
     
     if request.method == 'POST':
         for devotee in devotees:
@@ -275,35 +286,99 @@ def mark_attendance(request, sabha_id):
                 })
         
         messages.success(request, 'Attendance marked successfully!')
-        return redirect('sabha_list')
+        # Redirect back to same page to maintain pagination
+        redirect_url = f'/sabhas/{sabha_id}/attendance/?page={page}'
+        if search_query:
+            redirect_url += f'&search={search_query}'
+        return redirect(redirect_url)
     
-    # Auto-create absent records for all devotees if not exists
+    # Get existing attendance for current page only
+    devotee_ids = [str(d['_id']) for d in devotees]
+    existing_attendance = {
+        att['devotee_id']: att for att in attendance_db.find({
+            'sabha_id': sabha_id,
+            'devotee_id': {'$in': devotee_ids}
+        })
+    }
+    
+    # Add default absent status for devotees without records
     for devotee in devotees:
         devotee_id = str(devotee['_id'])
-        existing = attendance_db.find_one({'devotee_id': devotee_id, 'sabha_id': sabha_id})
-        if not existing:
-            attendance_db.insert_one({
-                'devotee_id': devotee_id,
-                'devotee_name': devotee['name'],
-                'sabha_id': sabha_id,
-                'sabha_date': sabha['date'],
-                'sabha_type': sabha['sabha_type'],
+        if devotee_id not in existing_attendance:
+            existing_attendance[devotee_id] = {
                 'status': 'absent',
-                'notes': '',
-                'marked_at': datetime.now().isoformat()
-            })
+                'notes': ''
+            }
     
-    existing_attendance = {
-        att['devotee_id']: att for att in attendance_db.find({'sabha_id': sabha_id})
-    }
+    # Create absent records for all devotees of this sabha type (async after response)
+    if request.method == 'GET':
+        from threading import Thread
+        def create_absent_records():
+            all_devotees = devotees_db.find({'sabha_type': sabha['sabha_type']})
+            for devotee in all_devotees:
+                devotee_id = str(devotee['_id'])
+                existing = attendance_db.find_one({'devotee_id': devotee_id, 'sabha_id': sabha_id})
+                if not existing:
+                    try:
+                        attendance_db.insert_one({
+                            'devotee_id': devotee_id,
+                            'devotee_name': devotee['name'],
+                            'sabha_id': sabha_id,
+                            'sabha_date': sabha['date'],
+                            'sabha_type': sabha['sabha_type'],
+                            'status': 'absent',
+                            'notes': '',
+                            'marked_at': datetime.now().isoformat()
+                        })
+                    except:
+                        pass  # Record might already exist due to race condition
+        
+        Thread(target=create_absent_records, daemon=True).start()
+    
+    # Create pagination object
+    class PaginationObj:
+        def __init__(self, items, page, total_pages, has_previous, has_next, total_count):
+            self.object_list = items
+            self.number = page
+            self.paginator = type('Paginator', (), {
+                'num_pages': total_pages,
+                'count': total_count
+            })()
+            self.has_previous = lambda: has_previous
+            self.has_next = lambda: has_next
+            self.previous_page_number = lambda: page - 1 if has_previous else None
+            self.next_page_number = lambda: page + 1 if has_next else None
+        
+        def __iter__(self):
+            return iter(self.object_list)
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        devotees_data = [{
+            'id': str(d['_id']),
+            'name': d['name'],
+            'contact_number': d['contact_number'],
+            'sabha_type_display': d['sabha_type'].title(),
+            'photo_url': d.get('photo_url', '')
+        } for d in devotees_raw]
+        
+        return JsonResponse({
+            'devotees': devotees_data,
+            'total_count': total_count,
+            'current_page': page,
+            'total_pages': total_pages,
+            'has_previous': has_previous,
+            'has_next': has_next
+        })
+    
+    page_obj = PaginationObj(devotees, page, total_pages, has_previous, has_next, total_count)
     
     context = {
         'sabha': sabha,
         'devotees': devotees,
-        'page_obj': devotees,
+        'page_obj': page_obj,
         'existing_attendance': existing_attendance,
         'search_query': search_query,
-        'total_count': len(devotees)
+        'total_count': total_count
     }
     return render(request, 'attendance/mark_attendance.html', context)
 
@@ -363,6 +438,10 @@ def attendance_report(request):
     sabha_type = request.GET.get('sabha_type')
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
+    status_filter = request.GET.get('status')
+    search_query = request.GET.get('search', '')
+    page = int(request.GET.get('page', 1))
+    per_page = 20
     
     query = {}
     if sabha_type:
@@ -371,13 +450,67 @@ def attendance_report(request):
         query.setdefault('sabha_date', {})['$gte'] = date_from
     if date_to:
         query.setdefault('sabha_date', {})['$lte'] = date_to
+    if status_filter:
+        query['status'] = status_filter
+    if search_query:
+        query['devotee_name'] = {'$regex': search_query, '$options': 'i'}
     
-    attendance_records = attendance_db.find(query, sort=[('sabha_date', -1)])
+    # Get counts for status buttons
+    base_query = {k: v for k, v in query.items() if k != 'status'}
+    present_count = attendance_db.count({**base_query, 'status': 'present'})
+    absent_count = attendance_db.count({**base_query, 'status': 'absent'})
+    late_count = attendance_db.count({**base_query, 'status': 'late'})
+    
+    # Pagination
+    total_count = attendance_db.count(query)
+    skip = (page - 1) * per_page
+    attendance_records = attendance_db.find(query, sort=[('sabha_date', -1)], skip=skip, limit=per_page)
+    
+    # Pagination info
+    total_pages = (total_count + per_page - 1) // per_page
+    has_previous = page > 1
+    has_next = page < total_pages
+    
+    # Create pagination object
+    class PaginationObj:
+        def __init__(self, items, page, total_pages, has_previous, has_next, total_count):
+            self.object_list = items
+            self.number = page
+            self.paginator = type('Paginator', (), {
+                'num_pages': total_pages,
+                'count': total_count
+            })()
+            self.has_previous = lambda: has_previous
+            self.has_next = lambda: has_next
+            self.previous_page_number = lambda: page - 1 if has_previous else None
+            self.next_page_number = lambda: page + 1 if has_next else None
+        
+        def __iter__(self):
+            return iter(self.object_list)
+    
+    attendance_list = list(attendance_records)
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'records': attendance_list,
+            'total_count': total_count,
+            'current_page': page,
+            'total_pages': total_pages,
+            'has_previous': has_previous,
+            'has_next': has_next
+        })
+    
+    page_obj = PaginationObj(attendance_list, page, total_pages, has_previous, has_next, total_count)
     
     context = {
-        'attendance_records': attendance_records,
+        'page_obj': page_obj,
         'sabha_types': [('bal', 'Bal Sabha'), ('yuvak', 'Yuvak Sabha'), ('mahila', 'Mahila Sabha'), ('sanyukt', 'Sanyukt Sabha')],
-        'filters': {'sabha_type': sabha_type, 'date_from': date_from, 'date_to': date_to}
+        'filters': {'sabha_type': sabha_type, 'date_from': date_from, 'date_to': date_to, 'status': status_filter},
+        'search_query': search_query,
+        'present_count': present_count,
+        'absent_count': absent_count,
+        'late_count': late_count,
+        'total_count': total_count
     }
     return render(request, 'attendance/attendance_report.html', context)
 
@@ -590,6 +723,38 @@ def process_devotees_batch(request):
         'percentage': round((processed / total_records) * 100),
         'current_batch': current_batch + 1
     })
+
+@login_required
+def devotee_delete(request, pk):
+    devotee = devotees_db.find_one({'_id': ObjectId(pk)})
+    if not devotee:
+        messages.error(request, 'Devotee not found')
+        return redirect('devotee_list')
+    
+    if request.method == 'POST':
+        # Delete devotee and related attendance records
+        attendance_db.delete_many({'devotee_id': pk})
+        devotees_db.delete_one({'_id': ObjectId(pk)})
+        messages.success(request, f'Devotee {devotee["name"]} deleted successfully!')
+        return redirect('devotee_list')
+    
+    return JsonResponse({'name': devotee['name']})
+
+@login_required
+def sabha_delete(request, pk):
+    sabha = sabhas_db.find_one({'_id': ObjectId(pk)})
+    if not sabha:
+        messages.error(request, 'Sabha not found')
+        return redirect('sabha_list')
+    
+    if request.method == 'POST':
+        # Delete sabha and related attendance records
+        attendance_db.delete_many({'sabha_id': pk})
+        sabhas_db.delete_one({'_id': ObjectId(pk)})
+        messages.success(request, f'Sabha on {sabha["date"]} deleted successfully!')
+        return redirect('sabha_list')
+    
+    return JsonResponse({'date': sabha['date'], 'type': sabha['sabha_type']})
 
 @login_required
 @require_POST

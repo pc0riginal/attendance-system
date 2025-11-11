@@ -36,6 +36,7 @@ class MongoDBManager:
     def __init__(self, collection_name):
         self.db = get_mongodb()
         self.collection = self.db[collection_name] if self.db is not None else None
+        self._ensure_indexes(collection_name)
     
     def _ensure_connection(self):
         """Ensure MongoDB connection is healthy"""
@@ -113,3 +114,21 @@ class MongoDBManager:
         if self.collection is not None:
             return self.collection.count_documents(query or {})
         return 0
+    
+    def _ensure_indexes(self, collection_name):
+        """Create indexes for better performance"""
+        if self.collection is None:
+            return
+        
+        try:
+            if collection_name == 'attendance_records':
+                self.collection.create_index([('sabha_id', 1), ('devotee_id', 1)], unique=True)
+                self.collection.create_index([('sabha_id', 1)])
+                self.collection.create_index([('devotee_id', 1)])
+            elif collection_name == 'devotees':
+                self.collection.create_index([('sabha_type', 1)])
+                self.collection.create_index([('contact_number', 1)], unique=True)
+            elif collection_name == 'sabhas':
+                self.collection.create_index([('date', -1)])
+        except Exception:
+            pass  # Indexes may already exist
