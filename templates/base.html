@@ -176,6 +176,12 @@
             box-shadow: 0 8px 32px rgba(108, 99, 255, 0.4);
         }
         
+        @media (max-width: 768px) {
+            .floating-btn {
+                bottom: 100px;
+            }
+        }
+        
         /* Toggle Buttons */
         .btn-check:checked + .btn-outline-success { background: var(--emerald); border-color: var(--emerald); color: white; }
         .btn-check:checked + .btn-outline-warning { background: var(--amber); border-color: var(--amber); color: white; }
@@ -224,7 +230,11 @@
             .navbar-collapse { display: none !important; }
             .navbar-toggler { display: none !important; }
             .navbar-brand span { display: inline !important; }
-            body { padding-bottom: 80px; }
+            .navbar { position: static !important; }
+            body { padding-bottom: 100px; }
+            .container-fluid { padding-bottom: 20px; }
+            .tab-content { margin-bottom: 20px; }
+            .card:last-child { margin-bottom: 20px; }
         }
         
         @media (min-width: 769px) {
