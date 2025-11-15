@@ -91,7 +91,10 @@ def devotee_list(request):
     total_count = devotees_db.count(query)
     skip = (page - 1) * per_page
     
-    devotees_raw = devotees_db.find(query, sort=[('devotee_id', 1)], skip=skip, limit=per_page)
+    # Get all matching documents and sort by devotee_id as integer
+    all_devotees = list(devotees_db.find(query))
+    all_devotees.sort(key=lambda x: int(x.get('devotee_id', 0)) if str(x.get('devotee_id', '')).isdigit() else 0)
+    devotees_raw = all_devotees[skip:skip + per_page]
     devotees = []
     for devotee in devotees_raw:
         devotee['id'] = str(devotee['_id'])
@@ -378,7 +381,10 @@ def mark_attendance(request, sabha_id):
     total_count = devotees_db.count(query)
     skip = (page - 1) * per_page
     
-    devotees_raw = devotees_db.find(query, sort=[('devotee_id', 1)], skip=skip, limit=per_page)
+    # Get all matching documents and sort by devotee_id as integer
+    all_devotees = list(devotees_db.find(query))
+    all_devotees.sort(key=lambda x: int(x.get('devotee_id', 0)) if str(x.get('devotee_id', '')).isdigit() else 0)
+    devotees_raw = all_devotees[skip:skip + per_page]
     devotees = []
     for devotee in devotees_raw:
         devotee['id'] = str(devotee['_id'])
