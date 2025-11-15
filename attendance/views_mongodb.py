@@ -812,39 +812,17 @@ def cancel_batch_processing(request):
             del request.session[key]
     return JsonResponse({'success': True})
 
-@login_required
-def process_devotees_batch(request):
-    if 'upload_data' not in request.session:
-        return JsonResponse({'error': 'No upload data found'})
+def process_batch_worker(batch_data):
+    """Worker function to process a batch of devotees"""
+    from .mongodb_utils import MongoDBManager
     
-    batch_size = 50
-    current_batch = request.session.get('current_batch', 0)
-    
-    valid_rows = request.session['upload_data']
-    total_records = len(valid_rows)
-    
-    start_idx = current_batch * batch_size
-    end_idx = min(start_idx + batch_size, total_records)
-    
-    if start_idx >= total_records:
-        # Already completed
-        return JsonResponse({
-            'processed': total_records,
-            'total': total_records,
-            'created': request.session.get('total_created', 0),
-            'updated': request.session.get('total_updated', 0),
-            'complete': True,
-            'percentage': 100
-        })
-    
-    batch = valid_rows[start_idx:end_idx]
-    
+    devotees_worker_db = MongoDBManager('devotees')
     created_count = 0
     updated_count = 0
     
-    for row in batch:
+    for row in batch_data:
         try:
-            # Clean row data - remove any ObjectId instances
+            # Clean row data
             clean_row = {}
             for k, v in row.items():
                 if isinstance(v, ObjectId):
@@ -854,30 +832,83 @@ def process_devotees_batch(request):
                 else:
                     clean_row[k] = v
             
-            existing = devotees_db.find_one({'contact_number': clean_row['contact_number']})
+            existing = devotees_worker_db.find_one({'contact_number': clean_row['contact_number']})
             if existing:
                 update_data = {k: v for k, v in clean_row.items() if k != '_id'}
                 update_data['updated_at'] = datetime.now().isoformat()
-                devotees_db.update_one({'_id': existing['_id']}, update_data)
+                devotees_worker_db.update_one({'_id': existing['_id']}, update_data)
                 updated_count += 1
             else:
                 clean_row['created_at'] = datetime.now().isoformat()
-                devotees_db.insert_one(clean_row)
+                devotees_worker_db.collection.insert_one(clean_row)
                 created_count += 1
         except Exception as e:
             print(f"Error processing row: {e}")
             continue
     
+    return created_count, updated_count
+
+@login_required
+def process_devotees_batch(request):
+    if 'upload_data' not in request.session:
+        return JsonResponse({'error': 'No upload data found'})
+    
+    from concurrent.futures import ThreadPoolExecutor
+    import threading
+    
+    batch_size = 25  # Smaller batches for parallel processing
+    num_threads = 4  # Process 4 batches in parallel
+    current_batch = request.session.get('current_batch', 0)
+    
+    valid_rows = request.session['upload_data']
+    total_records = len(valid_rows)
+    
+    # Calculate batch range for parallel processing
+    start_idx = current_batch * batch_size * num_threads
+    end_idx = min(start_idx + (batch_size * num_threads), total_records)
+    
+    if start_idx >= total_records:
+        return JsonResponse({
+            'processed': total_records,
+            'total': total_records,
+            'created': request.session.get('total_created', 0),
+            'updated': request.session.get('total_updated', 0),
+            'complete': True,
+            'percentage': 100
+        })
+    
+    # Split data into parallel batches
+    batches = []
+    for i in range(num_threads):
+        batch_start = start_idx + (i * batch_size)
+        batch_end = min(batch_start + batch_size, end_idx)
+        if batch_start < batch_end:
+            batches.append(valid_rows[batch_start:batch_end])
+    
+    total_created = 0
+    total_updated = 0
+    
+    # Process batches in parallel
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        futures = [executor.submit(process_batch_worker, batch) for batch in batches]
+        
+        for future in futures:
+            try:
+                created, updated = future.result(timeout=30)
+                total_created += created
+                total_updated += updated
+            except Exception as e:
+                print(f"Batch processing error: {e}")
+    
     # Update session counters
     request.session['current_batch'] = current_batch + 1
-    request.session['total_created'] = request.session.get('total_created', 0) + created_count
-    request.session['total_updated'] = request.session.get('total_updated', 0) + updated_count
+    request.session['total_created'] = request.session.get('total_created', 0) + total_created
+    request.session['total_updated'] = request.session.get('total_updated', 0) + total_updated
     
     processed = end_idx
     is_complete = processed >= total_records
     
     if is_complete:
-        # Clean up session data
         for key in ['upload_data', 'total_records', 'current_batch', 'total_created', 'total_updated']:
             request.session.pop(key, None)
     
