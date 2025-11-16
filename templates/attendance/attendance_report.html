@@ -63,9 +63,9 @@
 <div class="tab-pane fade" id="report" role="tabpanel">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5><i class="bi bi-table"></i> Attendance Report</h5>
-        <a href="{% url 'export_attendance' %}{% if filters.sabha_type or filters.date_from or filters.date_to %}?{% if filters.sabha_type %}sabha_type={{ filters.sabha_type }}{% endif %}{% if filters.date_from %}&date_from={{ filters.date_from }}{% endif %}{% if filters.date_to %}&date_to={{ filters.date_to }}{% endif %}{% endif %}" class="btn btn-temple btn-sm">
+        <button onclick="exportReport()" class="btn btn-temple btn-sm">
             <i class="bi bi-download me-2"></i> Export
-        </a>
+        </button>
     </div>
     <div class="card mb-4">
         <div class="card-header">
@@ -749,5 +749,40 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('report').classList.add('show', 'active');
     }
 });
+
+function exportReport() {
+    const dateFrom = document.getElementById('date_from').value;
+    const dateTo = document.getElementById('date_to').value;
+    
+    if (!dateFrom || !dateTo) {
+        alert('Please select both start and end dates for export');
+        return;
+    }
+    
+    const startDate = new Date(dateFrom);
+    const endDate = new Date(dateTo);
+    const daysDiff = (endDate - startDate) / (1000 * 60 * 60 * 24);
+    
+    if (daysDiff > 365) {
+        alert('Date range cannot exceed 1 year');
+        return;
+    }
+    
+    if (startDate > endDate) {
+        alert('Start date must be before end date');
+        return;
+    }
+    
+    const params = new URLSearchParams();
+    params.set('date_from', dateFrom);
+    params.set('date_to', dateTo);
+    
+    const sabhaType = document.getElementById('sabha_type').value;
+    if (sabhaType) {
+        params.set('sabha_type', sabhaType);
+    }
+    
+    window.location.href = '{% url "export_attendance" %}?' + params.toString();
+}
 </script>
 {% endblock %}

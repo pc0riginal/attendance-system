@@ -762,11 +762,29 @@ def export_attendance(request):
     from openpyxl.styles import Font, PatternFill, Alignment
     from concurrent.futures import ThreadPoolExecutor
     from io import BytesIO
+    from datetime import datetime, timedelta
     
     sabha_type_filter = request.GET.get('sabha_type')
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
     status_filter = request.GET.get('status')
+    
+    # Validate date range is required and within 1 year limit
+    if not date_from or not date_to:
+        return HttpResponse('Date range is required for export', status=400)
+    
+    try:
+        start_date = datetime.strptime(date_from, '%Y-%m-%d')
+        end_date = datetime.strptime(date_to, '%Y-%m-%d')
+        
+        if (end_date - start_date).days > 365:
+            return HttpResponse('Date range cannot exceed 1 year', status=400)
+        
+        if start_date > end_date:
+            return HttpResponse('Start date must be before end date', status=400)
+            
+    except ValueError:
+        return HttpResponse('Invalid date format', status=400)
     
     # Build queries
     sabha_query = {}
