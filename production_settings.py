@@ -19,11 +19,11 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'koyebdb',
-        'USER': 'koyeb-adm',
-        'PASSWORD': 'npg_U2fgu9DxzvNW',
-        'HOST': 'ep-wild-salad-a2zawwsl.eu-central-1.pg.koyeb.app',
-        'PORT': '5432',
+        'NAME': os.environ.get('DB_NAME', 'koyebdb'),
+        'USER': os.environ.get('DB_USER', 'koyeb-adm'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST', 'ep-wild-salad-a2zawwsl.eu-central-1.pg.koyeb.app'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
         'OPTIONS': {
             'sslmode': 'require',
         },
