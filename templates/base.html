@@ -6,7 +6,7 @@
     <title>{% block title %}Temple Attendance System{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <style>
         :root {
@@ -17,8 +17,89 @@
             --coral-red: #EF4444;
             --amber: #F59E0B;
         }
+        
+        [data-theme="dark"] {
+            --white-lilac: #121212;
+            --dark-blue: #ffffff;
+        }
+        
+        [data-theme="dark"] body {
+            background-color: #121212 !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .card {
+            background: #1e1e1e !important;
+            color: #ffffff !important;
+            border-color: #333 !important;
+        }
+        
+        [data-theme="dark"] .navbar {
+            background: rgba(30, 30, 30, 0.95) !important;
+        }
+        
+        [data-theme="dark"] .navbar-brand,
+        [data-theme="dark"] .nav-link {
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .bottom-tab-bar {
+            background: #1e1e1e !important;
+            border-top-color: #333 !important;
+        }
+        
+        [data-theme="dark"] .bottom-tab {
+            color: #ccc !important;
+        }
+        
+        [data-theme="dark"] .bottom-tab.active,
+        [data-theme="dark"] .bottom-tab:hover {
+            color: #6C63FF !important;
+        }
+        
+        [data-theme="dark"] .form-control, 
+        [data-theme="dark"] .form-select {
+            background: #2a2a2a !important;
+            border-color: #444 !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .form-control:focus,
+        [data-theme="dark"] .form-select:focus {
+            background: #2a2a2a !important;
+            border-color: #6C63FF !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .table {
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .table thead th {
+            background-color: rgba(108, 99, 255, 0.2) !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .table tbody td {
+            border-color: #333 !important;
+        }
+        
+        [data-theme="dark"] .badge.bg-light {
+            background: #333 !important;
+            color: #ffffff !important;
+        }
+        
+        [data-theme="dark"] .text-muted {
+            color: #ccc !important;
+        }
+        
+        [data-theme="dark"] .alert {
+            background: #2a2a2a !important;
+            border-color: #444 !important;
+            color: #ffffff !important;
+        }
         * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
-        body { background-color: var(--white-lilac); color: var(--dark-blue); line-height: 1.6; }
+        body { background-color: var(--white-lilac); color: var(--dark-blue); line-height: 1.6; font-size: 16px; }
         
         /* Hero Background Pattern */
         .hero-bg {
@@ -27,24 +108,25 @@
                 repeating-linear-gradient(
                     45deg,
                     transparent,
-                    transparent 2px,
-                    rgba(108, 99, 255, 0.03) 2px,
-                    rgba(108, 99, 255, 0.03) 4px
+                    transparent 3px,
+                    rgba(108, 99, 255, 0.04) 3px,
+                    rgba(108, 99, 255, 0.04) 6px
                 );
             position: relative;
             overflow: hidden;
+            min-height: 60vh;
         }
         .hero-bg::before {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 600px;
-            height: 600px;
+            top: -30%;
+            right: -15%;
+            width: 500px;
+            height: 500px;
             background: var(--gradient-primary);
             border-radius: 50%;
-            opacity: 0.1;
-            filter: blur(100px);
+            opacity: 0.08;
+            filter: blur(80px);
         }
         
         /* Navigation */
@@ -55,50 +137,54 @@
         .nav-link { color: var(--dark-blue) !important; font-weight: 500; transition: all 0.3s ease; }
         .nav-link:hover { color: #6C63FF !important; }
         
-        /* Buttons */
+        /* Buttons - Large Touch-Friendly CTAs */
         .btn-temple { 
             background: var(--gradient-primary); 
             border: none; 
-            border-radius: 12px; 
-            padding: 16px 32px; 
+            border-radius: 16px; 
+            padding: 18px 36px; 
             font-weight: 600; 
-            font-size: 1rem;
+            font-size: 1.1rem;
             color: white;
             transition: all 0.3s ease; 
-            box-shadow: 0 4px 20px rgba(108, 99, 255, 0.3);
-            min-height: 56px;
+            box-shadow: 0 6px 24px rgba(108, 99, 255, 0.25);
+            min-height: 60px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            text-decoration: none;
         }
         .btn-temple:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 30px rgba(108, 99, 255, 0.4);
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 35px rgba(108, 99, 255, 0.35);
             color: white;
+            text-decoration: none;
         }
-        .btn-temple:active { transform: translateY(0); }
+        .btn-temple:active { transform: translateY(-1px); }
+        .btn-lg { min-height: 60px; padding: 18px 36px; font-size: 1.1rem; border-radius: 16px; }
         
-        /* Cards */
+        /* Cards - Soft, Rounded with Subtle Shadows */
         .card { 
             background: white; 
             border: none; 
-            border-radius: 20px; 
-            box-shadow: 0 4px 24px rgba(17, 20, 57, 0.08); 
+            border-radius: 24px; 
+            box-shadow: 0 2px 16px rgba(17, 20, 57, 0.06); 
             transition: all 0.3s ease;
             overflow: hidden;
         }
         .card:hover { 
-            transform: translateY(-4px); 
-            box-shadow: 0 12px 40px rgba(17, 20, 57, 0.12); 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 32px rgba(17, 20, 57, 0.1); 
         }
         .card-header { 
             background: var(--gradient-primary); 
             color: white; 
             border: none;
-            padding: 24px;
+            padding: 28px;
             font-weight: 600; 
+            font-size: 1.1rem;
         }
-        .card-body { padding: 24px; }
+        .card-body { padding: 28px; }
         
         /* Status Badges */
         .badge-present { background-color: var(--emerald) !important; padding: 8px 16px; border-radius: 20px; font-weight: 500; }
@@ -109,26 +195,28 @@
         .stat-card { 
             background: var(--gradient-primary); 
             color: white; 
-            border-radius: 24px;
+            border-radius: 28px;
             border: none;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 20px rgba(108, 99, 255, 0.15);
         }
         .stat-card::before {
             content: '';
             position: absolute;
             top: 0;
             right: 0;
-            width: 100px;
-            height: 100px;
-            background: rgba(255, 255, 255, 0.1);
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 50%;
-            transform: translate(30px, -30px);
+            transform: translate(40px, -40px);
         }
         .stat-card-secondary { 
-            background: linear-gradient(135deg, var(--dark-blue), #1e1b4b); 
+            background: linear-gradient(135deg, var(--dark-blue), #1a1654); 
             color: white; 
-            border-radius: 24px;
+            border-radius: 28px;
+            box-shadow: 0 4px 20px rgba(17, 20, 57, 0.15);
         }
         .stat-card-secondary h2, .stat-card-secondary p { color: white !important; }
         .stat-card-secondary .opacity-90 { opacity: 1 !important; }
@@ -176,19 +264,106 @@
             box-shadow: 0 8px 32px rgba(108, 99, 255, 0.4);
         }
         
+        @media (max-width: 768px) {
+            .floating-btn {
+                bottom: 100px;
+            }
+        }
+        
         /* Toggle Buttons */
         .btn-check:checked + .btn-outline-success { background: var(--emerald); border-color: var(--emerald); color: white; }
         .btn-check:checked + .btn-outline-warning { background: var(--amber); border-color: var(--amber); color: white; }
         .btn-check:checked + .btn-outline-danger { background: var(--coral-red); border-color: var(--coral-red); color: white; }
         
-        /* Responsive Typography */
-        h1, h2, h3, h4, h5, h6 { font-weight: 700; color: var(--dark-blue); }
-        .display-1 { font-size: 3.5rem; font-weight: 800; }
+        /* Responsive Typography - Accessible Contrast */
+        h1, h2, h3, h4, h5, h6 { font-weight: 700; color: var(--dark-blue); line-height: 1.3; }
+        .display-1 { font-size: 3.5rem; font-weight: 800; letter-spacing: -0.02em; }
+        .lead { font-size: 1.25rem; font-weight: 400; color: var(--dark-blue); opacity: 0.8; }
+        p { color: var(--dark-blue); }
+        
+        /* Bottom Tab Bar for Mobile */
+        .bottom-tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            background: white;
+            border-top: 1px solid rgba(17, 20, 57, 0.1);
+            z-index: 1000;
+            padding: 8px 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .bottom-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 1px;
+            text-decoration: none;
+            color: #6c757d;
+            font-size: 0.65rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            min-width: 0;
+            flex: 1 1 20%;
+            max-width: 20%;
+        }
+        .bottom-tab span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            text-align: center;
+        }
+        .bottom-tab-bar .d-flex {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        .bottom-tab:hover, .bottom-tab.active {
+            color: #6C63FF;
+            text-decoration: none;
+        }
+        .bottom-tab i {
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+        }
         
         @media (max-width: 768px) {
-            .btn-temple { padding: 14px 24px; min-height: 52px; }
-            .card-body { padding: 20px; }
-            .display-1 { font-size: 2.5rem; }
+            .btn-temple { padding: 16px 28px; min-height: 56px; font-size: 1rem; }
+            .btn-lg { padding: 16px 28px; min-height: 56px; font-size: 1rem; }
+            .card-body { padding: 24px; }
+            .card-header { padding: 24px; }
+            .display-1 { font-size: 2.8rem; }
+            .lead { font-size: 1.1rem; }
+            .navbar-collapse { display: none !important; }
+            .navbar-toggler { display: none !important; }
+            .navbar-brand span { display: inline !important; }
+            .navbar { position: static !important; }
+            body { padding-bottom: 100px; font-size: 16px; }
+            .container-fluid { padding-bottom: 20px; }
+            .container { padding-bottom: 20px; }
+            .hero-bg { margin-bottom: 20px !important; min-height: 50vh; }
+            .tab-content { margin-bottom: 20px; }
+            .card:last-child { margin-bottom: 20px; }
+        }
+        
+        @media (min-width: 769px) {
+            .bottom-tab-bar { display: none; }
+        }
+        
+        /* Fix for dashboard page */
+        @media (max-width: 768px) {
+            .hero-bg {
+                position: relative;
+                z-index: 1;
+            }
+            .bottom-tab-bar {
+                position: fixed !important;
+                bottom: 0 !important;
+                z-index: 1001 !important;
+            }
         }
     </style>
 </head>
@@ -196,9 +371,7 @@
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'dashboard' %}">
-                {% load static %}
-                <img src="{% static 'images/logo.png' %}" alt="Temple Logo" class="temple-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                <i class="bi bi-flower1" style="display: none;"></i>
+                <i class="bi bi-flower1 me-2"></i>
                 <span class="d-none d-sm-inline">BAPS Temple Attendance</span>
             </a>
             {% if user.is_authenticated %}
@@ -210,8 +383,11 @@
                     <a class="nav-link" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
                     <a class="nav-link" href="{% url 'devotee_list' %}"><i class="bi bi-people"></i> Devotees</a>
                     <a class="nav-link" href="{% url 'sabha_list' %}"><i class="bi bi-calendar-event"></i> Sabhas</a>
-                    <a class="nav-link" href="{% url 'upload_devotees' %}"><i class="bi bi-cloud-upload"></i> Upload</a>
-                    <a class="nav-link" href="{% url 'attendance_report' %}"><i class="bi bi-graph-up"></i> Reports</a>
+                    {% if user.is_superuser %}
+                    <a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-gear"></i> Admin</a>
+                    <a class="nav-link" href="{% url 'reports_dashboard' %}"><i class="bi bi-graph-up"></i> Reports</a>
+                    {% endif %}
+                    <button class="nav-link btn btn-link" onclick="toggleDarkMode()" style="border: none; background: none;"><i class="bi bi-moon-fill" id="theme-icon"></i> <span id="theme-text">Dark</span></button>
                     <a class="nav-link" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a>
                 </div>
             </div>
@@ -233,8 +409,79 @@
         {% endblock %}
     </div>
 
+    <!-- Bottom Tab Bar for Mobile -->
+    {% if user.is_authenticated %}
+    <div class="bottom-tab-bar d-md-none">
+        <div class="d-flex">
+            <a href="{% url 'dashboard' %}" class="bottom-tab{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Home</span>
+            </a>
+            <a href="{% url 'devotee_list' %}" class="bottom-tab{% if 'devotee' in request.resolver_match.url_name and 'upload' not in request.resolver_match.url_name %} active{% endif %}">
+                <i class="bi bi-people"></i>
+                <span>Devotees</span>
+            </a>
+            <a href="{% url 'sabha_list' %}" class="bottom-tab{% if 'sabha' in request.resolver_match.url_name %} active{% endif %}">
+                <i class="bi bi-calendar-event"></i>
+                <span>Sabhas</span>
+            </a>
+            <a href="{% url 'devotee_add' %}" class="bottom-tab{% if 'devotee_add' in request.resolver_match.url_name %} active{% endif %}">
+                <i class="bi bi-person-plus"></i>
+                <span>Add</span>
+            </a>
+            {% if user.is_superuser %}
+            <a href="{% url 'reports_dashboard' %}" class="bottom-tab{% if 'report' in request.resolver_match.url_name %} active{% endif %}">
+                <i class="bi bi-graph-up"></i>
+                <span>Reports</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>AOS.init({duration: 800, once: true});</script>
+    
+    <script>
+    function toggleDarkMode() {
+        const html = document.documentElement;
+        const icon = document.getElementById('theme-icon');
+        const text = document.getElementById('theme-text');
+        
+        if (html.getAttribute('data-theme') === 'dark') {
+            html.removeAttribute('data-theme');
+            icon.className = 'bi bi-moon-fill';
+            text.textContent = 'Dark';
+            localStorage.setItem('theme', 'light');
+        } else {
+            html.setAttribute('data-theme', 'dark');
+            icon.className = 'bi bi-sun-fill';
+            text.textContent = 'Light';
+            localStorage.setItem('theme', 'dark');
+        }
+    }
+    
+    // Load saved theme immediately
+    (function() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    })();
+    
+    // Update button after DOM loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            const icon = document.getElementById('theme-icon');
+            const text = document.getElementById('theme-text');
+            if (icon && text) {
+                icon.className = 'bi bi-sun-fill';
+                text.textContent = 'Light';
+            }
+        }
+    });
+    </script>
 </body>
 </html>

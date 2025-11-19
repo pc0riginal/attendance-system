@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
@@ -11,11 +11,22 @@ from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime, timedelta
 import csv
 import json
-from .models import Devotee, Sabha, Attendance
+from .models import Devotee, Sabha, Attendance, UserProfile
 from .forms import DevoteeForm, SabhaForm, AttendanceForm, DevoteeUploadForm
 from .utils import process_excel_file, save_devotees
 import os
 import tempfile
+
+def get_user_sabha_types(user):
+    """Get allowed sabha types for user"""
+    if user.is_superuser:
+        return [choice[0] for choice in Devotee.SABHA_CHOICES]
+    
+    try:
+        profile = UserProfile.objects.get(user=user)
+        return profile.allowed_sabha_types if profile.allowed_sabha_types else []
+    except UserProfile.DoesNotExist:
+        return []
 
 @csrf_exempt
 def login_view(request):
@@ -35,19 +46,33 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
-    total_devotees = Devotee.objects.count()
-    recent_sabhas = Sabha.objects.all()[:5]
+    allowed_sabha_types = get_user_sabha_types(request.user)
+    
+    if allowed_sabha_types:
+        total_devotees = Devotee.objects.filter(sabha_type__in=allowed_sabha_types).count()
+        recent_sabhas = Sabha.objects.filter(sabha_type__in=allowed_sabha_types)[:5]
+    else:
+        total_devotees = 0
+        recent_sabhas = []
     
     # Calculate attendance rate
-    total_attendance_records = Attendance.objects.count()
-    present_records = Attendance.objects.filter(status='present').count()
+    if allowed_sabha_types:
+        total_attendance_records = Attendance.objects.filter(sabha__sabha_type__in=allowed_sabha_types).count()
+        present_records = Attendance.objects.filter(sabha__sabha_type__in=allowed_sabha_types, status='present').count()
+    else:
+        total_attendance_records = 0
+        present_records = 0
     attendance_rate = round((present_records / total_attendance_records * 100) if total_attendance_records > 0 else 0)
     
     # This week's sabha count
     today = datetime.now().date()
     week_start = today - timedelta(days=today.weekday())
     week_end = week_start + timedelta(days=6)
-    this_week_sabhas = Sabha.objects.filter(date__range=[week_start, week_end]).count()
+    
+    if allowed_sabha_types:
+        this_week_sabhas = Sabha.objects.filter(sabha_type__in=allowed_sabha_types, date__range=[week_start, week_end]).count()
+    else:
+        this_week_sabhas = 0
     
     # Attendance stats for last 4 weeks
     attendance_stats = []
@@ -55,11 +80,16 @@ def dashboard(request):
         week_start = today - timedelta(weeks=i+1)
         week_end = today - timedelta(weeks=i)
         
-        sabhas_count = Sabha.objects.filter(date__range=[week_start, week_end]).count()
-        present_count = Attendance.objects.filter(
-            sabha__date__range=[week_start, week_end],
-            status='present'
-        ).count()
+        if allowed_sabha_types:
+            sabhas_count = Sabha.objects.filter(sabha_type__in=allowed_sabha_types, date__range=[week_start, week_end]).count()
+            present_count = Attendance.objects.filter(
+                sabha__sabha_type__in=allowed_sabha_types,
+                sabha__date__range=[week_start, week_end],
+                status='present'
+            ).count()
+        else:
+            sabhas_count = 0
+            present_count = 0
         
         attendance_stats.append({
             'week': f"Week {i+1}",
@@ -79,7 +109,14 @@ def dashboard(request):
 @login_required
 def devotee_list(request):
     search_query = request.GET.get('search', '')
-    devotees = Devotee.objects.all().order_by('name')
+    
+    # Filter by user's allowed sabha types
+    allowed_sabha_types = get_user_sabha_types(request.user)
+    if not allowed_sabha_types:
+        messages.error(request, 'You do not have permission to view devotees.')
+        return redirect('dashboard')
+    
+    devotees = Devotee.objects.filter(sabha_type__in=allowed_sabha_types).order_by('name')
     
     if search_query:
         devotees = devotees.filter(
@@ -121,14 +158,26 @@ def devotee_list(request):
 
 @login_required
 def devotee_add(request):
+    allowed_sabha_types = get_user_sabha_types(request.user)
+    if not allowed_sabha_types:
+        messages.error(request, 'You do not have permission to add devotees.')
+        return redirect('dashboard')
+    
     if request.method == 'POST':
         form = DevoteeForm(request.POST)
         if form.is_valid():
-            form.save()
+            devotee = form.save(commit=False)
+            if devotee.sabha_type not in allowed_sabha_types:
+                messages.error(request, 'You can only add devotees for your assigned sabha types.')
+                return render(request, 'attendance/devotee_form.html', {'form': form, 'title': 'Add Devotee'})
+            devotee.save()
             messages.success(request, 'Devotee added successfully!')
             return redirect('devotee_list')
     else:
         form = DevoteeForm()
+        # Limit sabha type choices
+        form.fields['sabha_type'].choices = [(choice[0], choice[1]) for choice in Devotee.SABHA_CHOICES if choice[0] in allowed_sabha_types]
+    
     return render(request, 'attendance/devotee_form.html', {'form': form, 'title': 'Add Devotee'})
 
 @login_required
@@ -151,24 +200,49 @@ def devotee_edit(request, pk):
 
 @login_required
 def sabha_list(request):
-    sabhas = Sabha.objects.all()
+    allowed_sabha_types = get_user_sabha_types(request.user)
+    if not allowed_sabha_types:
+        messages.error(request, 'You do not have permission to view sabhas.')
+        return redirect('dashboard')
+    
+    sabhas = Sabha.objects.filter(sabha_type__in=allowed_sabha_types)
     return render(request, 'attendance/sabha_list.html', {'sabhas': sabhas})
 
 @login_required
 def sabha_add(request):
+    allowed_sabha_types = get_user_sabha_types(request.user)
+    if not allowed_sabha_types:
+        messages.error(request, 'You do not have permission to create sabhas.')
+        return redirect('dashboard')
+    
     if request.method == 'POST':
         form = SabhaForm(request.POST)
         if form.is_valid():
-            form.save()
+            sabha = form.save(commit=False)
+            if sabha.sabha_type not in allowed_sabha_types:
+                messages.error(request, 'You can only create sabhas for your assigned sabha types.')
+                return render(request, 'attendance/sabha_form.html', {'form': form, 'title': 'Create Sabha'})
+            sabha.created_by = request.user
+            sabha.save()
             messages.success(request, 'Sabha created successfully!')
             return redirect('sabha_list')
     else:
         form = SabhaForm()
+        # Limit sabha type choices
+        form.fields['sabha_type'].choices = [(choice[0], choice[1]) for choice in Sabha.SABHA_CHOICES if choice[0] in allowed_sabha_types]
+    
     return render(request, 'attendance/sabha_form.html', {'form': form, 'title': 'Create Sabha'})
 
 @login_required
 def mark_attendance(request, sabha_id):
     sabha = get_object_or_404(Sabha, pk=sabha_id)
+    
+    # Check if user can access this sabha type
+    allowed_sabha_types = get_user_sabha_types(request.user)
+    if sabha.sabha_type not in allowed_sabha_types:
+        messages.error(request, 'You do not have permission to mark attendance for this sabha type.')
+        return redirect('sabha_list')
+    
     search_query = request.GET.get('search', '')
     devotees = Devotee.objects.filter(sabha_type=sabha.sabha_type).order_by('name')
     
@@ -242,6 +316,7 @@ def mark_attendance(request, sabha_id):
     return render(request, 'attendance/mark_attendance.html', context)
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser)
 def attendance_report(request):
     sabhas = Sabha.objects.all()
     devotees = Devotee.objects.all()
@@ -274,6 +349,7 @@ def attendance_report(request):
     return render(request, 'attendance/attendance_report.html', context)
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser)
 def export_attendance(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="attendance_report.csv"'

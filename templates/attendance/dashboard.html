@@ -4,17 +4,21 @@
 
 {% block content %}
 <!-- Hero Section -->
-<div class="hero-bg py-5 mb-5">
-    <div class="container" data-aos="fade-up">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h1 class="display-1 mb-4">Temple Attendance<br><span style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Made Simple</span></h1>
-                <p class="lead mb-4 text-muted">Streamline your sabha attendance tracking with our modern, intuitive platform designed for temple administrators.</p>
-                <div class="d-flex flex-column flex-sm-row gap-3">
+<div class="hero-bg py-5 mb-4">
+    <div class="container">
+        <div class="row align-items-center min-vh-50">
+            <div class="col-lg-6">
+                <h1 class="display-1 fw-bold mb-4" data-aos="fade-up">
+                    Temple Attendance Made Simple
+                </h1>
+                <p class="lead mb-4 opacity-75" data-aos="fade-up" data-aos-delay="100">
+                    Effortlessly manage devotee attendance, create sabhas, and generate insightful reports with our modern temple management system.
+                </p>
+                <div class="d-flex flex-wrap gap-3" data-aos="fade-up" data-aos-delay="200">
                     <a href="{% url 'sabha_add' %}" class="btn btn-temple">
-                        <i class="bi bi-calendar-plus me-2"></i>Create New Sabha
+                        <i class="bi bi-calendar-plus me-2"></i>Create Sabha
                     </a>
-                    <a href="{% url 'attendance_report' %}" class="btn btn-outline-primary" style="border: 2px solid #6C63FF; color: #6C63FF; border-radius: 12px; padding: 16px 32px; font-weight: 600; min-height: 56px; display: inline-flex; align-items: center;">
+                    <a href="{% url 'reports_dashboard' %}" class="btn btn-outline-primary btn-lg">
                         <i class="bi bi-graph-up me-2"></i>View Reports
                     </a>
                 </div>
@@ -23,65 +27,71 @@
     </div>
 </div>
 
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-speedometer2 text-primary"></i> Dashboard</h2>
+            <p class="text-muted mb-0">Temple attendance overview</p>
+        </div>
+    </div>
+
 <!-- Stats Cards -->
-<div class="container mb-5">
-    <div class="row g-4">
-        <div class="col-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
-            <div class="card stat-card h-100">
-                <div class="card-body position-relative">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="fw-bold mb-2">{{ total_devotees }}</h2>
-                            <p class="mb-0 opacity-90">Total Devotees</p>
-                        </div>
-                        <div class="fs-1 opacity-50">
-                            <i class="bi bi-people"></i>
-                        </div>
+<div class="row g-4 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body position-relative">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="fw-bold mb-2">{{ total_devotees }}</h2>
+                        <p class="mb-0 opacity-90">Total Devotees</p>
+                    </div>
+                    <div class="fs-1 opacity-50">
+                        <i class="bi bi-people"></i>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
-            <div class="card stat-card-secondary h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="fw-bold mb-2">{{ recent_sabhas|length }}</h2>
-                            <p class="mb-0">Recent Sabhas</p>
-                        </div>
-                        <div class="fs-1 opacity-50">
-                            <i class="bi bi-calendar-event"></i>
-                        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card-secondary h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="fw-bold mb-2">{{ recent_sabhas|length }}</h2>
+                        <p class="mb-0">Recent Sabhas</p>
+                    </div>
+                    <div class="fs-1 opacity-50">
+                        <i class="bi bi-calendar-event"></i>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
-            <div class="card stat-card h-100">
-                <div class="card-body position-relative">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="fw-bold mb-2">{{ attendance_rate }}%</h2>
-                            <p class="mb-0 opacity-90">Attendance Rate</p>
-                        </div>
-                        <div class="fs-1 opacity-50">
-                            <i class="bi bi-check-circle"></i>
-                        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body position-relative">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="fw-bold mb-2">{{ attendance_rate }}%</h2>
+                        <p class="mb-0 opacity-90">Attendance Rate</p>
+                    </div>
+                    <div class="fs-1 opacity-50">
+                        <i class="bi bi-check-circle"></i>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
-            <div class="card stat-card-secondary h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2 class="fw-bold mb-2">{{ this_week_sabhas }}</h2>
-                            <p class="mb-0">This Week</p>
-                        </div>
-                        <div class="fs-1 opacity-50">
-                            <i class="bi bi-calendar-week"></i>
-                        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card-secondary h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="fw-bold mb-2">{{ this_week_sabhas }}</h2>
+                        <p class="mb-0">This Week</p>
+                    </div>
+                    <div class="fs-1 opacity-50">
+                        <i class="bi bi-calendar-week"></i>
                     </div>
                 </div>
             </div>
@@ -90,23 +100,23 @@
 </div>
 
 <div class="row">
-    <div class="col-12 col-lg-6 mb-4" data-aos="fade-right">
+    <div class="col-12 col-lg-6 mb-4">
         <div class="card h-100">
             <div class="card-header">
                 <h6><i class="bi bi-calendar-event"></i> Recent Sabhas</h6>
             </div>
-            <div class="card-body p-2">
+            <div class="card-body">
                 {% if recent_sabhas %}
                     <div class="list-group list-group-flush">
                         {% for sabha in recent_sabhas %}
-                            <div class="list-group-item px-2 py-3">
-                                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start">
-                                    <div class="mb-2 mb-sm-0">
+                            <div class="list-group-item px-0 py-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
                                         <strong class="d-block">{{ sabha.get_sabha_type_display }}</strong>
                                         <small class="text-muted">{{ sabha.date }} at {{ sabha.location }}</small>
                                     </div>
                                     <a href="{% url 'mark_attendance' sabha.id %}" class="btn btn-sm btn-temple">
-                                        <i class="bi bi-check-circle"></i> <span class="d-none d-sm-inline">Mark</span>
+                                        <i class="bi bi-check-circle"></i> Mark
                                     </a>
                                 </div>
                             </div>
@@ -119,62 +129,35 @@
         </div>
     </div>
     
-    <div class="col-12 col-lg-6 mb-4" data-aos="fade-left">
+    <div class="col-12 col-lg-6 mb-4">
         <div class="card h-100">
-            <div class="card-header">
-                <h6><i class="bi bi-graph-up"></i> Attendance Overview</h6>
-            </div>
-            <div class="card-body">
-                {% if attendance_stats %}
-                    {% for stat in attendance_stats %}
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between small">
-                                <span>{{ stat.week }}</span>
-                                <span>{{ stat.present }} present</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-success" style="width: {% if stat.sabhas %}{{ stat.present|floatformat:0 }}%{% else %}0%{% endif %}"></div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="text-muted text-center py-3">No attendance data available.</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row" data-aos="fade-up">
-    <div class="col-12">
-        <div class="card">
             <div class="card-header">
                 <h6><i class="bi bi-lightning"></i> Quick Actions</h6>
             </div>
-            <div class="card-body p-2">
+            <div class="card-body">
                 <div class="row g-2">
-                    <div class="col-6 col-md-3 mb-3">
-                        <a href="{% url 'devotee_add' %}" class="btn btn-temple w-100 py-3 d-flex align-items-center justify-content-center">
-                            <i class="bi bi-person-plus fs-4 me-2"></i>
+                    <div class="col-6 mb-3">
+                        <a href="{% url 'devotee_add' %}" class="btn btn-temple w-100 py-3 d-flex flex-column align-items-center">
+                            <i class="bi bi-person-plus fs-4 mb-1"></i>
                             <small>Add Devotee</small>
                         </a>
                     </div>
-                    <div class="col-6 col-md-3 mb-3">
-                        <a href="{% url 'sabha_add' %}" class="btn btn-temple w-100 py-3 d-flex align-items-center justify-content-center">
-                            <i class="bi bi-calendar-plus fs-4 me-2"></i>
+                    <div class="col-6 mb-3">
+                        <a href="{% url 'sabha_add' %}" class="btn btn-temple w-100 py-3 d-flex flex-column align-items-center">
+                            <i class="bi bi-calendar-plus fs-4 mb-1"></i>
                             <small>Create Sabha</small>
                         </a>
                     </div>
-                    <div class="col-6 col-md-3 mb-3">
-                        <a href="{% url 'attendance_report' %}" class="btn btn-temple w-100 py-3 d-flex align-items-center justify-content-center">
-                            <i class="bi bi-graph-up fs-4 me-2"></i>
+                    <div class="col-6 mb-3">
+                        <a href="{% url 'reports_dashboard' %}" class="btn btn-temple w-100 py-3 d-flex flex-column align-items-center">
+                            <i class="bi bi-graph-up fs-4 mb-1"></i>
                             <small>View Reports</small>
                         </a>
                     </div>
-                    <div class="col-6 col-md-3 mb-3">
-                        <a href="{% url 'export_attendance' %}" class="btn btn-temple w-100 py-3 d-flex align-items-center justify-content-center">
-                            <i class="bi bi-download fs-4 me-2"></i>
-                            <small>Export Data</small>
+                    <div class="col-6 mb-3">
+                        <a href="{% url 'devotee_list' %}" class="btn btn-temple w-100 py-3 d-flex flex-column align-items-center">
+                            <i class="bi bi-people fs-4 mb-1"></i>
+                            <small>View Devotees</small>
                         </a>
                     </div>
                 </div>

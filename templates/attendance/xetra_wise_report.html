@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Xetra-wise Report - Temple Attendance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="bi bi-geo-alt"></i> Xetra-wise Attendance Report</h2>
+            <p class="text-muted">Attendance summary by xetra regions</p>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Date From</label>
+                            <input type="date" name="date_from" class="form-control" value="{{ filters.date_from }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Date To</label>
+                            <input type="date" name="date_to" class="form-control" value="{{ filters.date_to }}">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Xetra</th>
+                                    <th>Total Sabhas</th>
+                                    <th>Total Records</th>
+                                    <th>Present</th>
+                                    <th>Absent</th>
+                                    <th>Late</th>
+                                    <th>Attendance Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for xetra, stats in xetra_stats.items %}
+                                <tr>
+                                    <td><strong>{{ xetra }}</strong></td>
+                                    <td>{{ stats.sabhas }}</td>
+                                    <td>{{ stats.total }}</td>
+                                    <td><span class="badge bg-success">{{ stats.present }}</span></td>
+                                    <td><span class="badge bg-danger">{{ stats.absent }}</span></td>
+                                    <td><span class="badge bg-warning">{{ stats.late }}</span></td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar" role="progressbar" style="width: {{ stats.attendance_rate }}%">
+                                                {{ stats.attendance_rate }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
