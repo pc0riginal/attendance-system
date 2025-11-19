@@ -4,14 +4,19 @@ from .models import Devotee, Sabha, Attendance
 class DevoteeForm(forms.ModelForm):
     class Meta:
         model = Devotee
-        fields = ['name', 'contact_number', 'age_group', 'sabha_type', 'address', 'photo_url', 'join_date']
+        fields = ['devotee_type', 'name', 'contact_number', 'date_of_birth', 'gender', 'age', 'sabha_type', 'address_line', 'landmark', 'zone', 'photo_url', 'join_date']
         widgets = {
             'join_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'contact_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'age_group': forms.TextInput(attrs={'class': 'form-control'}),
+            'age': forms.NumberInput(attrs={'class': 'form-control'}),
+            'gender': forms.Select(attrs={'class': 'form-control'}),
+            'devotee_type': forms.Select(attrs={'class': 'form-control'}),
             'sabha_type': forms.Select(attrs={'class': 'form-control'}),
-            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'address_line': forms.TextInput(attrs={'class': 'form-control'}),
+            'landmark': forms.TextInput(attrs={'class': 'form-control'}),
+            'zone': forms.TextInput(attrs={'class': 'form-control'}),
             'photo_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://example.com/photo.jpg'}),
         }
 

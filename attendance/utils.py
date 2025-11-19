@@ -53,7 +53,7 @@ def process_excel_file(file_path, sabha_type_filter=None):
         
         # Expected columns
         required_columns = ['name', 'contact_number', 'sabha_type', 'photo_url']
-        optional_columns = ['age_group', 'address', 'join_date']
+        optional_columns = ['age', 'address_line', 'join_date']
         
         # Check if required columns exist
         missing_columns = [col for col in required_columns if col not in df.columns]
@@ -102,9 +102,10 @@ def process_excel_file(file_path, sabha_type_filter=None):
                     'contact_number': str(row['contact_number']).strip(),
                     'sabha_type': str(row['sabha_type']).lower().strip(),
                     'photo_url': str(row['photo_url']).strip(),
-                    'age_group': str(row.get('age_group', '')).strip() if not pd.isna(row.get('age_group')) else '',
-                    'address': str(row.get('address', '')).strip() if not pd.isna(row.get('address')) else '',
-                    'join_date': datetime.now().date()
+                    'age': int(row.get('age', 0)) if not pd.isna(row.get('age')) else None,
+                    'address_line': str(row.get('address_line', '')).strip() if not pd.isna(row.get('address_line')) else '',
+                    'join_date': datetime.now().date(),
+                    'devotee_type': 'haribhakt'
                 }
                 
                 # Handle join_date if provided
