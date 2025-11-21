@@ -306,8 +306,7 @@
             font-weight: 500;
             transition: all 0.3s ease;
             min-width: 0;
-            flex: 1 1 20%;
-            max-width: 20%;
+            flex: 1;
         }
         .bottom-tab span {
             white-space: nowrap;
@@ -371,9 +370,7 @@
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'dashboard' %}">
-                {% load static %}
-                <img src="{% static 'images/logo.png' %}" alt="Temple Logo" class="temple-logo me-2" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                <i class="bi bi-flower1 me-2" style="display: none;"></i>
+                <i class="bi bi-flower1 me-2"></i>
                 <span class="d-none d-sm-inline">BAPS Temple Attendance</span>
             </a>
             {% if user.is_authenticated %}
@@ -386,8 +383,10 @@
                     <a class="nav-link" href="{% url 'devotee_list' %}"><i class="bi bi-people"></i> Devotees</a>
                     <a class="nav-link" href="{% url 'sabha_list' %}"><i class="bi bi-calendar-event"></i> Sabhas</a>
                     <a class="nav-link" href="{% url 'upload_devotees' %}"><i class="bi bi-cloud-upload"></i> Upload</a>
+                    {% if user.is_superuser %}
+                    <a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-gear"></i> Admin</a>
                     <a class="nav-link" href="{% url 'attendance_report' %}"><i class="bi bi-graph-up"></i> Reports</a>
-                    <button class="nav-link btn btn-link" onclick="toggleDarkMode()" style="border: none; background: none;"><i class="bi bi-moon-fill" id="theme-icon"></i> <span id="theme-text">Dark</span></button>
+                    {% endif %}
                     <a class="nav-link" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a>
                 </div>
             </div>
@@ -429,10 +428,12 @@
                 <i class="bi bi-cloud-upload"></i>
                 <span>Upload</span>
             </a>
+            {% if user.is_superuser %}
             <a href="{% url 'attendance_report' %}" class="bottom-tab{% if 'report' in request.resolver_match.url_name %} active{% endif %}">
                 <i class="bi bi-graph-up"></i>
                 <span>Reports</span>
             </a>
+            {% endif %}
         </div>
     </div>
     {% endif %}

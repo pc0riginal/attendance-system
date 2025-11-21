@@ -49,7 +49,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Date of Birth</label>
-                                <input type="date" name="date_of_birth" class="form-control" value="{{ devotee.date_of_birth|default:'' }}" required id="dobInput" max="{{ today }}">
+                                <input type="date" name="date_of_birth" class="form-control" value="{% if devotee.date_of_birth %}{{ devotee.date_of_birth|date:'Y-m-d' }}{% endif %}" id="dobInput" max="{{ today }}">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -119,7 +119,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Join Date</label>
-                        <input type="date" name="join_date" class="form-control" value="{{ devotee.join_date|default:'' }}" max="{{ today }}" required>
+                        <input type="date" name="join_date" class="form-control" value="{% if devotee.join_date %}{{ devotee.join_date|date:'Y-m-d' }}{% endif %}" max="{{ today }}" required>
                     </div>
                     <div class="d-flex flex-column flex-sm-row justify-content-between gap-2">
                         <a href="{% url 'devotee_list' %}" class="btn btn-secondary">Cancel</a>

@@ -1,5 +1,6 @@
 from django.urls import path
-from . import views_mongodb as views
+from . import views
+from . import reports
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
@@ -11,6 +12,7 @@ urlpatterns = [
     path('devotees/add/', views.devotee_add, name='devotee_add'),
     path('devotees/<str:pk>/', views.devotee_detail, name='devotee_detail'),
     path('devotees/edit/<str:pk>/', views.devotee_edit, name='devotee_edit'),
+    path('devotees/delete/<str:pk>/', views.devotee_delete, name='devotee_delete'),
     
     # Sabha URLs
     path('sabhas/', views.sabha_list, name='sabha_list'),
@@ -18,19 +20,20 @@ urlpatterns = [
     path('sabhas/<str:sabha_id>/attendance/', views.mark_attendance, name='mark_attendance'),
     
     # Reports
-    path('reports/', views.attendance_report, name='attendance_report'),
-    path('reports/analytics/', views.attendance_analytics, name='attendance_analytics'),
+    path('reports/', reports.reports_dashboard, name='reports_dashboard'),
+    path('reports/attendance/', views.attendance_report, name='attendance_report'),
     path('reports/export/', views.export_attendance, name='export_attendance'),
+    path('reports/sabha-wise/', reports.sabha_wise_report, name='sabha_wise_report'),
+    path('reports/mandal-wise/', reports.mandal_wise_report, name='mandal_wise_report'),
+    path('reports/xetra-wise/', reports.xetra_wise_report, name='xetra_wise_report'),
+    path('reports/trends/', reports.attendance_trends, name='attendance_trends'),
+    path('reports/devotee-history/', reports.devotee_attendance_history, name='devotee_attendance_history'),
     
     # Upload
-    path('upload-devotees/', views.upload_devotees, name='upload_devotees'),
-    path('process-batch/', views.process_devotees_batch, name='process_devotees_batch'),
-    path('cancel-batch/', views.cancel_batch_processing, name='cancel_batch_processing'),
+    path('upload/', views.upload_devotees, name='upload_devotees'),
     
-    # API
-    path('api/save-attendance/', views.save_individual_attendance, name='save_individual_attendance'),
-    
-    # Delete URLs
-    path('devotees/delete/<str:pk>/', views.devotee_delete, name='devotee_delete'),
-    path('sabhas/delete/<str:pk>/', views.sabha_delete, name='sabha_delete'),
+    # AJAX
+    path('attendance/save/', views.save_individual_attendance, name='save_individual_attendance'),
+    path('api/save-attendance/', views.save_individual_attendance, name='api_save_attendance'),
+
 ]

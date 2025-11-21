@@ -491,7 +491,7 @@ let barChart, pieChart, lineChart;
 
 function loadCharts() {
     const params = new URLSearchParams(window.location.search);
-    const url = '{% url "attendance_analytics" %}?' + params.toString();
+    const url = '{% url "attendance_report" %}?' + params.toString();
     
     fetch(url)
         .then(response => response.json())

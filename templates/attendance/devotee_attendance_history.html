@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Devotee Attendance History - Temple Attendance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="bi bi-person-check"></i> Devotee Attendance History</h2>
+            <p class="text-muted">Individual devotee attendance records</p>
+        </div>
+    </div>
+    
+    {% if devotee %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>{{ devotee.name }}</h5>
+                            <p><strong>ID:</strong> {{ devotee.devotee_id }}</p>
+                            <p><strong>Sabha:</strong> {{ devotee.get_sabha_type_display }}</p>
+                            <p><strong>Contact:</strong> {{ devotee.contact_number }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="row text-center">
+                                <div class="col-3">
+                                    <h4 class="text-primary">{{ stats.total }}</h4>
+                                    <small>Total</small>
+                                </div>
+                                <div class="col-3">
+                                    <h4 class="text-success">{{ stats.present }}</h4>
+                                    <small>Present</small>
+                                </div>
+                                <div class="col-3">
+                                    <h4 class="text-danger">{{ stats.absent }}</h4>
+                                    <small>Absent</small>
+                                </div>
+                                <div class="col-3">
+                                    <h4 class="text-warning">{{ stats.late }}</h4>
+                                    <small>Late</small>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ stats.attendance_rate }}%">
+                                        {{ stats.attendance_rate }}% Attendance Rate
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <input type="hidden" name="devotee_id" value="{{ devotee.devotee_id }}">
+                        <div class="col-md-4">
+                            <label class="form-label">Date From</label>
+                            <input type="date" name="date_from" class="form-control" value="{{ filters.date_from }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Date To</label>
+                            <input type="date" name="date_to" class="form-control" value="{{ filters.date_to }}">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Sabha Type</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                    <th>Marked At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in attendance_records %}
+                                <tr>
+                                    <td>{{ record.sabha.date }}</td>
+                                    <td><span class="badge bg-primary">{{ record.sabha.get_sabha_type_display }}</span></td>
+                                    <td>{{ record.sabha.location }}</td>
+                                    <td>
+                                        {% if record.status == 'present' %}
+                                            <span class="badge bg-success">Present</span>
+                                        {% elif record.status == 'late' %}
+                                            <span class="badge bg-warning">Late</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Absent</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ record.notes|default:"-" }}</td>
+                                    <td>{{ record.marked_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">No attendance records found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <form method="get" class="row g-3 justify-content-center">
+                        <div class="col-md-4">
+                            <label class="form-label">Enter Devotee ID</label>
+                            <input type="text" name="devotee_id" class="form-control" placeholder="Enter devotee ID" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </form>
+                    {% if error %}
+                    <div class="alert alert-danger mt-3">{{ error }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

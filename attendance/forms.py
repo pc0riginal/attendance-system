@@ -72,11 +72,13 @@ class DevoteeForm(forms.ModelForm):
 class SabhaForm(forms.ModelForm):
     class Meta:
         model = Sabha
-        fields = ['date', 'sabha_type', 'location', 'start_time', 'end_time']
+        fields = ['date', 'sabha_type', 'location', 'mandal', 'xetra', 'start_time', 'end_time']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'sabha_type': forms.Select(attrs={'class': 'form-control'}),
             'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'mandal': forms.TextInput(attrs={'class': 'form-control'}),
+            'xetra': forms.TextInput(attrs={'class': 'form-control'}),
             'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
             'end_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
         }

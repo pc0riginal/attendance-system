@@ -58,19 +58,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'temple_attendance.wsgi.application'
 
-# MongoDB Configuration
-MONGODB_URI = os.environ.get('MONGODB_URI', 'mongodb+srv://bapspalanapurmandir_db_user:JZk14IqQigujWwCi@cluster0.qf8igco.mongodb.net/?appName=Cluster0')
-MONGODB_NAME = os.environ.get('MONGODB_NAME', 'temple_attendance')
-
-# MongoDB Client will be initialized in mongodb_utils.py
-
-# SQLite for Django admin, auth, sessions
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Database - Use PostgreSQL in production, SQLite for development
+if os.environ.get('DATABASE_URL'):
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse('postgres://koyeb-adm:npg_U2fgu9DxzvNW@ep-wild-salad-a2zawwsl.eu-central-1.pg.koyeb.app/koyebdb')
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -96,17 +96,15 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Static files serving
-if not DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-else:
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+# MongoDB Configuration
+MONGODB_URI = os.environ.get('MONGODB_URI', 'mongodb+srv://admin:admin@cluster0.mongodb.net/')
+MONGODB_NAME = os.environ.get('MONGODB_NAME', 'temple_attendance')
 
 # Logging configuration
 LOGGING = {
@@ -129,6 +127,11 @@ LOGGING = {
         },
     },
 }
+
+# Dropbox configuration
+DROPBOX_APP_KEY = os.environ.get('DROPBOX_APP_KEY')
+DROPBOX_APP_SECRET = os.environ.get('DROPBOX_APP_SECRET')
+DROPBOX_REFRESH_TOKEN = os.environ.get('DROPBOX_REFRESH_TOKEN')
 
 # Production security settings
 if not DEBUG:

@@ -15,12 +15,25 @@ SECURE_HSTS_PRELOAD = True
 # Static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# MongoDB Configuration - ensure environment variables are used
-MONGODB_URI = os.environ.get('MONGODB_URI')
-MONGODB_NAME = os.environ.get('MONGODB_NAME', 'temple_attendance')
+# PostgreSQL Database for all models and data
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'koyebdb',
+        'USER': 'koyeb-adm',
+        'PASSWORD': 'npg_U2fgu9DxzvNW',
+        'HOST': 'ep-wild-salad-a2zawwsl.eu-central-1.pg.koyeb.app',
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
+    }
+}
 
-if not MONGODB_URI:
-    raise ValueError("MONGODB_URI environment variable is required in production")
+# Use Django's built-in authentication
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Allowed hosts from environment
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else ['*']
@@ -29,7 +42,6 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if os.environ.get('CSRF_TRUSTED_ORIGINS') else []
 
 print(f"Production settings loaded:")
-print(f"  - MongoDB URI: {'Set' if MONGODB_URI else 'Not set'}")
-print(f"  - MongoDB Name: {MONGODB_NAME}")
+print(f"  - Database: PostgreSQL (Koyeb)")
 print(f"  - Allowed Hosts: {ALLOWED_HOSTS}")
 print(f"  - Debug: {DEBUG}")
